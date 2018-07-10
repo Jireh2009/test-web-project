@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HOME</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">Test HomePage</a>
+                </div>
+                <ul class="navbar-nav">
+                    <li class="nav-item active"><a class="nav-link" href="home.html">Home</a></li>
+                    <li class="nav-item"><button class="btn btn-success" type="button" name="add" id="add">Add Product</button></li>
+                    <li class="nav-item"><a class="nav-link" href="login.html">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <br/>
+        
+        <div class="jumbotron">
+            <div id="image_data">
+
+            </div>
+        </div>
+
+
+
+        <script src="js/bootstrap.js"></script>
+    </body>
+</html>
+
+<div id="imageModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add Product</h4>
+            </div>
+            <div class="modal-body">
+                <form id="image_form" method="post" enctype="multipart/form-data">
+                    <p><label>Select Image</label>
+                        <input type="file" name="image" id="image"/></p><br/>
+                    <input type="text" name="prod_name" class="form-control" placeholder="Enter Product Name" id="prod_name"><br/>
+                    <textarea class="form-control" rows="5" name="pinfo" id="pinfo" placeholder="Enter Product Information"></textarea><br/>
+                    <input type="hidden" name="action" id="action" value="insert"/>
+                    <input type="hidden" name="image_id" id="image_id"/>
+                    <input type="submit" name="insert" id="insert" value="Insert" class="btn btn-info"/>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        fetch_data();
+
+        function fetch_data()
+        {
+            var action = "fetch";
+            $.ajax({
+                url: "upload.php",
+                method: "POST",
+                data: {action: action},
+                success: function (data)
+                {
+                    $('#image_data').html(data);
+                }
+            })
+        }
+        $('#add').click(function () {
+            $('#imageModal').modal('show');
+            $('#image_form')[0].reset();
+            $('.modal-title').text("Add Product");
+            $('#image_id').val('');
+            $('#action').val('insert');
+            $('#insert').val("Insert");
+        });
+        $('#image_form').submit(function (event) {
+            event.preventDefault();
+            var image_name = $('#image').val();
+            var prod_name = $('#prod_name').val();
+            var prod_info = $('#pinfo').val();
+            if (image_name == '' || prod_name === "" || pinfo === "")
+            {
+                alert("Please Fill All Information");
+                return false;
+            } else
+            {
+                var extension = $('#image').val().split('.').pop().toLowerCase();
+                if (jQuery.inArray(extension, ['gif', 'png', 'jpg', 'jpeg']) == -1)
+                {
+                    alert("Invalid Image File");
+                    $('#image').val('');
+                    return false;
+                } else
+                {
+                    $.ajax({
+                        url: "upload.php",
+                        method: "POST",
+                        data: new FormData(this),
+                        contentType: false,
+                        processData: false,
+                        success: function (data)
+                        {
+                            alert(data);
+                            fetch_data();
+                            $('#image_form')[0].reset();
+                            $('#imageModal').modal('hide');
+                        }
+                    });
+                }
+            }
+        });
+        $(document).on('click', '.update', function () {
+            $('#image_id').val($(this).attr("id"));
+            $('#action').val("update");
+            $('.modal-title').text("Update Image");
+            $('#insert').val("Update");
+            $('#imageModal').modal("show");
+        });
+        $(document).on('click', '.delete', function () {
+            var image_id = $(this).attr("id");
+            var action = "delete";
+            if (confirm("Are you sure you want to remove this image from database?"))
+            {
+                $.ajax({
+                    url: "upload.php",
+                    method: "POST",
+                    data: {image_id: image_id, action: action},
+                    success: function (data)
+                    {
+                        alert(data);
+                        fetch_data();
+                    }
+                })
+            } else
+            {
+                return false;
+            }
+        });
+    });
+</script>
